@@ -7,7 +7,13 @@ dotenv.config({
     path: './env'
 })
 
-connectDB();
+connectDB()
+.then(() =>{
+
+})
+.catch((error) => {
+    console.log('DB connection failed');
+})
 
 // import express from 'express';
 // const app = express();
