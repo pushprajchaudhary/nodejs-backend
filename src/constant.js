@@ -1,1 +1,1 @@
-export const DB_NAME="LearningNodeJs"
+export const DB_NAME = "videotube"
