@@ -228,13 +228,84 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         )
 })
 
+const updateUserDetails = asyncHandler(async (req, res) => {
+    const { fullName, email } = req.body;
+
+    if (!fullName || !email) {
+        throw new ApiError(401, "Mandatory fileds are required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._conditions._id,
+        {
+            $set: {
+                fullName,
+                email: email
+            }
+        },
+        {
+            new: true
+        }
+    ).select('-password')
+
+    if (!user) {
+        throw new ApiError(400, "User not found");
+    }
+
+    return res.status(200)
+        .json(new ApiResponse(
+            200,
+            user,
+            "Account detail updated successfully"
+        ))
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path
+    console.log('req.file?.path', req.file?.path)
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar is required");
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+    if (!avatar.url) {
+        throw new ApiError(400, "Error while uploading avatar, please try again");
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user?._conditions._id,
+        {
+            $set: {
+                avatar: avatar?.url
+            }
+        },
+        {
+            new: true
+        }
+    ).select('-password');
+
+    if (!updatedUser) {
+        throw new ApiError(400, "User not found");
+    }
+
+    return res.status(200)
+        .json(new ApiResponse(
+            200,
+            updatedUser,
+            'Avatar updated successfully'
+        ))
+})
+
 export {
     registerUser,
     loginUser,
     logoutUser,
     refreshAccessToken,
     changeCurrentPassword,
-    getCurrentUser
+    getCurrentUser,
+    updateUserDetails,
+    updateUserAvatar
 };
 
 
