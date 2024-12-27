@@ -1,1 +1,1 @@
-*Jacascript Backend using express, mongodb and mongoose.*
+*Javascript Backend using express, mongodb and mongoose.*
