@@ -1,0 +1,43 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      run: docker build -t my-nodejs-app .
+
+    - name: Save Docker image as a tar file
+      run: docker save -o my-nodejs-app.tar my-nodejs-app
+
+    - name: Copy Docker image to EC2
+      uses: appleboy/scp-action@v0.1.2
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        source: "my-nodejs-app.tar"
+        target: "~/my-nodejs-app.tar"
+
+    - name: SSH into EC2 and deploy
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        script: |
+          docker load -i ~/my-nodejs-app.tar
+          docker run -d -p 3000:3000 my-nodejs-app
